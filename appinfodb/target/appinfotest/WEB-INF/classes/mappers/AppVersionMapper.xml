@@ -1,0 +1,35 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kgc.dao.AppVersionMapper">
+    <!--查询历史版本-->
+    <select id="findappversion" resultType="AppVersion">
+	SELECT v.*,d.valueName 'publishStatusName',a.softwareName 'appName'
+	FROM `app_version` v inner join app_info a on (v.appId=a.id)  join data_dictionary d  on
+	v.publishStatus = d.valueId where d.typeCode='PUBLISH_STATUS'
+		and v.appId=#{appid}
+	</select>
+    <!-- 新增app版本 -->
+    <insert id="addversion" parameterType="AppVersion">
+		INSERT INTO app_version (
+		appId,versionNo,versionSize,publishStatus,versionInfo,
+		creationDate,createdBy,downloadLink,apkLocPath,apkFileName,modifyDate)
+		VALUES(#{appId},#{versionNo},#{versionSize},#{publishStatus},
+		#{versionInfo},#{creationDate},#{createdBy},#{downloadLink},
+		#{apkLocPath},#{apkFileName},#{modifyDate});
+	</insert>
+	<!-- 查找最新版本号 -->
+	<select id="findappver" resultType="AppVersion">
+		SELECT * FROM `app_version` where appid = #{appid} ORDER BY creationDate desc limit 1 ;
+	</select>
+	<!-- 修改appinfo的最新版本号 -->
+	<update id="updateappinfo">
+		UPDATE app_info SET versionId=#{versionId} where id=#{appid}
+	</update>
+	<!--修改版本-->
+	<update id="updateapkinfo">
+	UPDATE `app_version` SET  downloadLink= #{downloadLink},
+	apkLocPath=#{apkLocPath}, apkFileName=#{apkFileName},versionNo=#{versionNo}  ,
+	versionSize=#{versionSize}  ,versionInfo=#{versionInfo},modifyBy=#{modifyBy},
+	 modifyDate=#{modifyDate} WHERE id=#{id}
+	</update>
+</mapper>

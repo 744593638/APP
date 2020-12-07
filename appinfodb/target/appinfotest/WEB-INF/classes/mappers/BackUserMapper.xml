@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kgc.dao.BackUserMapper">
+	<!--登录-->
+	<select id="finduser" resultType="BackUser">
+		select *,(select
+		valueName from
+		data_dictionary where typeName='用户类型' and
+		valueId=A.userType) AS
+		userNameType from backend_user A where
+		userCode=#{UserCode} and
+		userPassword=#{UserPassword}
+	</select>
+
+	<!-- 通过条件查询 -->
+	<select id="findAppInfocondition" resultType="AppInfo">
+		select A.*,
+		(select valueName
+		from data_dictionary where
+		typeName='所属平台'and
+		valueId=A.flatformId) AS
+		flatformName,
+		(select
+		categoryName from app_category where
+		id=A.categoryLevel1) AS
+		categoryLevel1Name,
+		(select categoryName from
+		app_category where
+		id=A.categoryLevel2) AS
+		categoryLevel2Name,
+		(select
+		categoryName from
+		app_category where id=A.categoryLevel3) AS
+		categoryLevel3Name,
+		(select
+		valueName from data_dictionary where
+		typeName='APP状态' and
+		A.status=valueId) AS statusName,
+		(select versionNo
+		from app_version
+		where id=A.versionId) AS versionNo from
+		app_info A
+		<where>
+			<if test="querySoftwareName!=null and querySoftwareName !=''">
+				a.softwareName like CONCAT('%',#{querySoftwareName},'%')
+			</if>
+			<if test="queryStatus!=null">
+				and a.`status`=#{queryStatus}
+			</if>
+			<if test="queryFlatformId!=null">
+				and a.flatformId=#{queryFlatformId}
+			</if>
+			<if test="queryCategoryLevel1!=null">
+				and a.categoryLevel1=#{queryCategoryLevel1}
+			</if>
+			<if test="queryCategoryLevel2!=null">
+				and a.categoryLevel2=#{queryCategoryLevel2}
+			</if>
+			<if test="queryCategoryLevel3!=null">
+				and a.categoryLevel3=#{queryCategoryLevel3}
+			</if>
+			<if test="1==1">and status=(select valueId from data_dictionary where
+				typeName='APP状态' and valueName='待审核')
+			</if>
+		</where>
+		LIMIT #{currentPageNo},#{pageSize}
+	</select>
+
+
+	<!-- 统计总数量 -->
+	<select id="Count" resultType="int">
+		select Count(1) from app_info a
+		<where>
+			<if test="querySoftwareName!=null and querySoftwareName !=''">
+				a.softwareName like CONCAT('%',#{querySoftwareName},'%')
+			</if>
+			<if test="queryStatus!=null">
+				and a.`status`=#{queryStatus}
+			</if>
+			<if test="queryFlatformId!=null">
+				and a.flatformId=#{queryFlatformId}
+			</if>
+			<if test="queryCategoryLevel1!=null">
+				and a.categoryLevel1=#{queryCategoryLevel1}
+			</if>
+			<if test="queryCategoryLevel2!=null">
+				and a.categoryLevel2=#{queryCategoryLevel2}
+			</if>
+			<if test="queryCategoryLevel3!=null">
+				and a.categoryLevel3=#{queryCategoryLevel3}
+			</if>
+			<if test="1==1">and status=(select valueId from data_dictionary where
+				typeName='APP状态' and valueName='待审核')
+			</if>
+		</where>
+	</select>
+
+
+	<!-- 查询所属平台 -->
+	<select id="findptname" resultType="DataDictionary">
+		select * from data_dictionary
+		where typename="所属平台"
+	</select>
+
+
+	<!--加载分类-->
+	<select id="findtwotype" resultType="AppCategory">
+		SELECT * FROM app_category
+		<where>
+			<if test="pid==null">
+				parentId IS NULL
+			</if>
+			<if test="pid!=null">
+				parentId =#{pid}
+			</if>
+		</where>
+	</select>
+
+
+	<!--修改审核-->
+	<update id="checksave">
+		update app_info set status=#{status} where id=#{id}
+	</update>
+
+
+	<!--修改发布状态-->
+	<update id="checksavestatus">
+		update app_version set publishStatus=#{publishStatus}
+		where id=#{vid}
+	</update>
+</mapper>
